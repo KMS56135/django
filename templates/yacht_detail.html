@@ -1,0 +1,596 @@
+{% extends "base.html" %} {% load static %} {% block title %} {{ yacht.name }} – Аренда яхт {% endblock %} {% block extra_head %}
+<!-- Подключаем календарь -->
+<!-- Подключаем Leaflet для карты -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+<style>
+  .booking-modal {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  .flatpickr-calendar {
+    margin: 16px auto;
+  }
+  /* Стили для модального окна */
+  .modal-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  /* Стили для календаря */
+  .flatpickr-calendar {
+    margin: 16px auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  .flatpickr-day.selected {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+  }
+  .flatpickr-day.today {
+    border-color: #2563eb;
+  }
+  .date-picker-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .date-inputs {
+    display: flex;
+    gap: 1rem;
+  }
+  .date-input-group {
+    flex: 1;
+  }
+  .date-input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    color: #4b5563;
+  }
+  .date-input-group input[type="date"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    color: #1f2937;
+    background-color: white;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .date-input-group input[type="date"]:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+  .date-input-group input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    padding: 0.25rem;
+    filter: invert(0.4);
+  }
+  .price-calculation {
+    background-color: #f3f4f6;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-top: 1rem;
+  }
+  .price-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+  .price-row:last-child {
+    margin-bottom: 0;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e5e7eb;
+    font-weight: 600;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="container mx-auto px-4 py-8">
+  <!-- Галерея и основная информация -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+    <!-- Галерея фотографий -->
+    <div class="space-y-4">
+      {% if yacht.main_photo %}
+      <div class="rounded-xl overflow-hidden shadow-lg">
+        <img
+          src="{{ yacht.main_photo.url }}"
+          alt="{{ yacht.name }}"
+          class="w-full h-96 object-cover"
+        />
+      </div>
+      {% endif %} {% if yacht.photos.all %}
+      <div class="grid grid-cols-4 gap-4">
+        {% for photo in yacht.photos.all %}
+        <div class="rounded-lg overflow-hidden shadow-md">
+          <img
+            src="{{ photo.image.url }}"
+            alt="{{ yacht.name }}"
+            class="w-full h-24 object-cover"
+          />
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Основная информация и бронирование -->
+    <div class="space-y-6">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">{{ yacht.name }}</h1>
+        <div class="flex items-center text-gray-600 mb-4">
+          <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+            />
+          </svg>
+          <span>{{ yacht.location }}</span>
+        </div>
+        <p class="text-gray-600 mb-6">{{ yacht.description }}</p>
+        <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg mb-6">
+          <div>
+            <p class="text-2xl font-bold text-[#1e3a8a]">
+              {{ yacht.price_per_day }}₽<span class="text-sm text-gray-500 font-normal">/день</span>
+            </p>
+          </div>
+          {% if user.is_authenticated %}
+          <button
+            type="button"
+            onclick="document.getElementById('modal').classList.remove('hidden')"
+            class="inline-flex items-center px-6 py-3 bg-[#1e3a8a] text-white font-medium rounded-lg hover:bg-[#172554] transition duration-200"
+          >
+            Забронировать
+            <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+          </button>
+          {% else %}
+          <a
+            href="{% url 'login' %}"
+            class="inline-flex items-center px-6 py-3 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700 transition duration-200"
+          >
+            Войдите для бронирования
+            <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+              />
+            </svg>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Основные характеристики -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="p-4 bg-gray-50 rounded-lg text-center">
+          <svg
+            class="h-6 w-6 mx-auto mb-2 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+            />
+          </svg>
+          <p class="text-sm text-gray-600">Пассажиров</p>
+          <p class="text-lg font-semibold">{{ yacht.max_passengers }}</p>
+        </div>
+        <div class="p-4 bg-gray-50 rounded-lg text-center">
+          <svg
+            class="h-6 w-6 mx-auto mb-2 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+            />
+          </svg>
+          <p class="text-sm text-gray-600">Каюты</p>
+          <p class="text-lg font-semibold">{{ yacht.cabins }}</p>
+        </div>
+        <div class="p-4 bg-gray-50 rounded-lg text-center">
+          <svg
+            class="h-6 w-6 mx-auto mb-2 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+            />
+          </svg>
+          <p class="text-sm text-gray-600">Длина</p>
+          <p class="text-lg font-semibold">{{ yacht.length }}м</p>
+        </div>
+        <div class="p-4 bg-gray-50 rounded-lg text-center">
+          <svg
+            class="h-6 w-6 mx-auto mb-2 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 10V3L4 14h7v7l9-11h-7z"
+            />
+          </svg>
+          <p class="text-sm text-gray-600">Мощность</p>
+          <p class="text-lg font-semibold">{{ yacht.power }}л.с.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Детальная информация -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12 h-[200px]">
+    <!-- Технические характеристики -->
+    <div class="h-[200px] bg-white rounded-xl shadow-lg p-6">
+      <h2 class="text-xl font-semibold mb-4">Технические характеристики</h2>
+      <div class="space-y-3">
+        <div class="flex justify-between">
+          <span class="text-gray-600">Водоизмещение</span>
+          <span class="font-medium">{{ yacht.displacement }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">Запас топлива</span>
+          <span class="font-medium">{{ yacht.fuel_capacity }} л</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">Запас воды</span>
+          <span class="font-medium">{{ yacht.water_capacity }} л</span>
+        </div>
+        {% comment %} <div class="flex justify-between">
+          <span class="text-gray-600">Тип корпуса</span>
+          <span class="font-medium">{{ yacht.hull_type }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">Материал</span>
+          <span class="font-medium">{{ yacht.hull_material }}</span>
+        </div> {% endcomment %}
+      </div>
+    </div>
+
+    <!-- Комфорт -->
+    <div class="h-[200px] bg-white rounded-xl shadow-lg p-6">
+      <h2 class="text-xl font-semibold mb-4">Комфорт</h2>
+      <div class="space-y-3">
+        <div class="flex justify-between">
+          <span class="text-gray-600">Спальных мест</span>
+          <span class="font-medium">{{ yacht.guest_beds }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">Санузлов</span>
+          <span class="font-medium">{{ yacht.bathrooms }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">Экипаж</span>
+          <span class="font-medium">{{ yacht.crew }}</span>
+        </div>
+        {% comment %} <div class="flex justify-between">
+          <span class="text-gray-600">Дизайн</span>
+          <span class="font-medium">{{ yacht.design_style }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">Концепция</span>
+          <span class="font-medium">{{ yacht.concept }}</span>
+        </div> {% endcomment %}
+      </div>
+    </div>
+
+    <!-- Производитель -->
+    {% comment %} <div class="bg-white rounded-xl shadow-lg p-6">
+      <h2 class="text-xl font-semibold mb-4">Производитель</h2>
+      <div class="space-y-3">
+        <div class="flex justify-between">
+          <span class="text-gray-600">Верфь</span>
+          <span class="font-medium">{{ yacht.shipyard }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">Страна</span>
+          <span class="font-medium">{{ yacht.country }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">Серия</span>
+          <span class="font-medium">{{ yacht.series }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">Модель</span>
+          <span class="font-medium">{{ yacht.model_name }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">Год выпуска</span>
+          <span class="font-medium">{{ yacht.release_period }}</span>
+        </div>
+      </div>
+    </div>
+  </div> {% endcomment %}
+
+  <!-- Карта -->
+  <div class="h-[200px] bg-white rounded-xl shadow-lg p-6 mb-12">
+    <h2 class="text-xl font-semibold mb-4">Местоположение яхты</h2>
+    <div id="map" class="h-[400px] rounded-lg"></div>
+  </div>
+
+  <!-- Модальное окно -->
+  <div id="modal" class="modal-overlay fixed inset-0 hidden z-50 bg-black bg-opacity-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-white rounded-xl p-8 max-w-lg w-full relative">
+        <!-- Кнопка закрытия -->
+        <button
+          type="button"
+          id="closeModalBtn"
+          class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none"
+        >
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+
+        <h3 class="text-2xl font-bold text-gray-900 mb-6">Бронирование яхты "{{ yacht.name }}"</h3>
+
+        <form
+          id="bookingForm"
+          method="POST"
+          action="{% url 'book_yacht' yacht.id %}"
+          class="space-y-6"
+        >
+          {% csrf_token %}
+          <div class="date-picker-container space-y-6">
+            <div class="date-inputs grid grid-cols-2 gap-4">
+              <div class="date-input-group">
+                <label for="start_date" class="block text-sm font-medium text-gray-700 mb-2"
+                  >Дата начала</label
+                >
+                <input
+                  type="date"
+                  id="start_date"
+                  name="start_date"
+                  required
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                />
+              </div>
+              <div class="date-input-group">
+                <label for="end_date" class="block text-sm font-medium text-gray-700 mb-2"
+                  >Дата окончания</label
+                >
+                <input
+                  type="date"
+                  id="end_date"
+                  name="end_date"
+                  required
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                />
+              </div>
+            </div>
+
+            <div
+              id="priceCalculation"
+              class="price-calculation hidden bg-gray-50 rounded-lg p-4 space-y-3"
+            >
+              <div class="price-row flex justify-between items-center text-gray-600">
+                <span class="label">Количество дней:</span>
+                <span id="daysCount" class="value font-medium">0</span>
+              </div>
+              <div class="price-row flex justify-between items-center text-gray-600">
+                <span class="label">Стоимость за день:</span>
+                <span class="value font-medium">{{ yacht.price_per_day }}₽</span>
+              </div>
+              <div
+                class="price-row total flex justify-between items-center text-gray-900 pt-3 border-t border-gray-200"
+              >
+                <span class="label font-medium">Итого:</span>
+                <span id="totalPrice" class="value text-xl font-bold text-blue-600">0₽</span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            Подтвердить бронирование
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if messages %}
+<div class="fixed bottom-4 right-4">
+  {% for message in messages %}
+  <div class="bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg mb-4">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %} {% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const startDateInput = document.getElementById('start_date');
+      const endDateInput = document.getElementById('end_date');
+      const pricePerDay = {{ yacht.price_per_day }};
+      const bookedDates = {{ booked_dates_json|safe }};
+
+      // Устанавливаем минимальную дату как сегодня
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const todayStr = today.toISOString().split('T')[0];
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+      startDateInput.min = todayStr;
+      startDateInput.value = todayStr;
+      endDateInput.min = tomorrowStr;
+      endDateInput.value = tomorrowStr;
+
+      function isDateBooked(date) {
+          return bookedDates.includes(date.toISOString().split('T')[0]);
+      }
+
+      function calculatePrice() {
+          const startDate = new Date(startDateInput.value);
+          const endDate = new Date(endDateInput.value);
+
+          if (startDate && endDate && startDate <= endDate) {
+              // Проверяем, не попадают ли выбранные даты на забронированные
+              let currentDate = new Date(startDate);
+              while (currentDate <= endDate) {
+                  if (isDateBooked(currentDate)) {
+                      alert('Выбранный период содержит уже забронированные даты');
+                      return false;
+                  }
+                  currentDate.setDate(currentDate.getDate() + 1);
+              }
+
+              const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+              const total = days * pricePerDay;
+
+              document.getElementById('daysCount').textContent = days;
+              document.getElementById('totalPrice').textContent = total.toLocaleString() + '₽';
+              document.getElementById('priceCalculation').classList.remove('hidden');
+              return true;
+          }
+          return false;
+      }
+
+      // Обработчики изменения дат
+      startDateInput.addEventListener('change', function() {
+          const selectedDate = new Date(this.value);
+          const nextDay = new Date(selectedDate);
+          nextDay.setDate(nextDay.getDate() + 1);
+
+          endDateInput.min = nextDay.toISOString().split('T')[0];
+          if (endDateInput.value && new Date(endDateInput.value) <= selectedDate) {
+              endDateInput.value = nextDay.toISOString().split('T')[0];
+          }
+          calculatePrice();
+      });
+
+      endDateInput.addEventListener('change', function() {
+          if (startDateInput.value) {
+              calculatePrice();
+          }
+      });
+
+      // Обработка отправки формы
+      const form = document.getElementById('bookingForm');
+      form.addEventListener('submit', function(e) {
+          e.preventDefault();
+
+          if (!calculatePrice()) {
+              alert('Пожалуйста, выберите корректные даты бронирования');
+              return;
+          }
+
+          const submitBtn = this.querySelector('button[type="submit"]');
+          const originalText = submitBtn.innerHTML;
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<span class="inline-flex items-center">Отправка... <svg class="animate-spin ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></span>';
+
+          fetch(this.action, {
+              method: 'POST',
+              body: new FormData(this),
+              headers: {
+                  'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+              },
+              credentials: 'same-origin'
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  // Показываем уведомление об успешном бронировании
+                  const notification = document.createElement('div');
+                  notification.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-500 translate-y-0';
+                  notification.innerHTML = `
+                      <div class="flex items-center space-x-3">
+                          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                          </svg>
+                          <span>Бронирование успешно создано!</span>
+                      </div>
+                  `;
+                  document.body.appendChild(notification);
+
+                  // Удаляем уведомление через 3 секунды
+                  setTimeout(() => {
+                      notification.classList.add('translate-y-full', 'opacity-0');
+                      setTimeout(() => notification.remove(), 500);
+                  }, 3000);
+
+                  // Перенаправляем на страницу бронирований
+                  setTimeout(() => {
+                      window.location.href = data.redirect_url || '/my-bookings/';
+                  }, 1500);
+              } else {
+                  alert(data.error || 'Произошла ошибка при бронировании');
+              }
+          })
+          .catch(error => {
+              console.error('Ошибка:', error);
+              alert('Произошла ошибка при отправке формы');
+          })
+          .finally(() => {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = originalText;
+          });
+      });
+
+      // Обработчик закрытия модального окна
+      const modal = document.getElementById('modal');
+      const closeModalBtn = document.getElementById('closeModalBtn');
+
+      function closeModal() {
+          if (modal) {
+              modal.classList.add('hidden');
+          }
+      }
+
+      // Закрытие по кнопке
+      if (closeModalBtn) {
+          closeModalBtn.addEventListener('click', closeModal);
+      }
+
+      // Закрытие по клику вне окна
+      modal.addEventListener('click', function(e) {
+          if (e.target === modal) {
+              closeModal();
+          }
+      });
+
+      // Закрытие по Escape
+      document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') {
+              closeModal();
+          }
+      });
+  });
+</script>
+{% endblock %}

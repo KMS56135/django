@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Основные цвета */
+    --color-primary: #1e3a8a; /* Темно-синий */
+    --color-primary-dark: #172554; /* Очень темный синий */
+    --color-secondary: #0f172a; /* Почти черный синий */
+    --color-accent: #3b82f6; /* Яркий синий */
+
+    /* Нейтральные цвета */
+    --color-bg: #f8fafc;
+    --color-border: #e2e8f0;
+    --color-text-muted: #64748b;
+    --color-text: #1e293b;
+
+    /* Дополнительные цвета */
+    --color-error: #ef4444;
+    --color-warning: #f59e0b;
+    --color-success: #0ea5e9; /* Голубой для успеха */
+    --color-info: #3b82f6;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-2 bg-[#1e3a8a] text-white rounded-xl hover:bg-[#172554] transform hover:scale-105 transition duration-300 shadow-lg hover:shadow-xl;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-2 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transform hover:scale-105 transition duration-300 shadow-lg hover:shadow-xl;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-lg overflow-hidden transition duration-300 hover:shadow-xl;
+  }
+
+  .input {
+    @apply w-full px-4 py-3 border border-[#e2e8f0] rounded-xl focus:ring-2 focus:ring-[#1e3a8a] focus:border-transparent transition duration-200 bg-[#f8fafc];
+  }
+
+  .heading-primary {
+    @apply text-3xl font-bold text-[#0f172a];
+  }
+
+  .text-muted {
+    @apply text-[#64748b];
+  }
+
+  /* Стили для карусели */
+  .slider-container {
+    @apply w-full overflow-hidden;
+  }
+
+  .slider-wrapper {
+    @apply relative w-full;
+  }
+
+  .slider {
+    @apply flex gap-6 cursor-grab overflow-x-auto scrollbar-hide select-none;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  .slider.active {
+    @apply cursor-grabbing;
+  }
+
+  .slide {
+    @apply flex-none min-w-[290px] max-w-[390px];
+  }
+
+  /* Скрываем скроллбар */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

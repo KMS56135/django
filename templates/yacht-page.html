@@ -1,0 +1,263 @@
+{% extends "base.html" %} {% load static %} {% block content %}
+
+<div class="bg-white">
+  <div class="container mx-auto px-4 py-16">
+    <h1 class="text-5xl font-bold mb-12 text-center">
+      Наши <span class="text-[#1e3a8a]">яхты</span>
+    </h1>
+
+    <!-- Форма фильтрации -->
+    <div class="max-w-5xl mx-auto mb-16 shadow-xl rounded-2xl">
+      <form id="filterForm" class="bg-white rounded-2xl p-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Поиск по названию -->
+          <div class="relative">
+            <label for="name" class="block text-sm font-medium text-[#0f172a] mb-2"
+              >Поиск по названию</label
+            >
+            <div class="relative">
+              <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Введите название яхты"
+                class="w-full px-4 py-3 pl-10 border border-[#e2e8f0] rounded-xl focus:ring-2 focus:ring-[#1e3a8a] focus:border-transparent transition duration-200 bg-[#f8fafc]"
+              />
+              <svg
+                class="w-5 h-5 text-[#64748b] absolute left-3 top-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Фильтр по цене -->
+          <div class="relative">
+            <label class="block text-sm font-medium text-[#0f172a] mb-2">Цена за день</label>
+            <div class="flex gap-4">
+              <div class="relative w-1/2">
+                <input
+                  type="number"
+                  id="minPrice"
+                  name="minPrice"
+                  placeholder="От"
+                  class="w-full px-4 py-3 pl-8 border border-[#e2e8f0] rounded-xl focus:ring-2 focus:ring-[#1e3a8a] focus:border-transparent transition duration-200 bg-[#f8fafc]"
+                />
+                <span class="absolute left-3 top-3.5 text-[#64748b] text-sm">₽</span>
+              </div>
+              <div class="relative w-1/2">
+                <input
+                  type="number"
+                  id="maxPrice"
+                  name="maxPrice"
+                  placeholder="До"
+                  class="w-full px-4 py-3 pl-8 border border-[#e2e8f0] rounded-xl focus:ring-2 focus:ring-[#1e3a8a] focus:border-transparent transition duration-200 bg-[#f8fafc]"
+                />
+                <span class="absolute left-3 top-3.5 text-[#64748b] text-sm">₽</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Фильтр по локации -->
+          <div class="relative">
+            <label for="location" class="block text-sm font-medium text-[#0f172a] mb-2"
+              >Локация</label
+            >
+            <div class="relative">
+              <select
+                id="location"
+                name="location"
+                class="w-full px-4 py-3 pl-10 border border-[#e2e8f0] rounded-xl focus:ring-2 focus:ring-[#1e3a8a] focus:border-transparent transition duration-200 bg-[#f8fafc] appearance-none"
+              >
+                <option value="">Все локации</option>
+                {% for location in locations %}
+                <option value="{{ location }}">{{ location }}</option>
+                {% endfor %}
+              </select>
+              <svg
+                class="w-5 h-5 text-[#64748b] absolute right-3 top-3.5 pointer-events-none"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+              <svg
+                class="w-5 h-5 text-[#64748b] absolute left-3 top-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Сообщение об отсутствии результатов -->
+    <div id="noResultsMessage" class="hidden">
+      <div class="bg-[#fef3c7] border border-[#fcd34d] rounded-2xl p-6 text-center mb-8">
+        <svg
+          class="mx-auto h-12 w-12 text-[#f59e0b] mb-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
+        </svg>
+        <h3 class="text-lg font-medium text-[#92400e] mb-2">Ничего не найдено</h3>
+        <p class="text-sm text-[#b45309]">
+          К сожалению, яхт с указанными параметрами не найдено. Попробуйте изменить критерии поиска.
+        </p>
+      </div>
+    </div>
+
+    <div id="yachtsList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      {% for yacht in yachts %}
+      <div
+        class="yacht-card bg-white rounded-2xl shadow-lg overflow-hidden transition duration-300 hover:shadow-xl flex flex-col"
+        data-name="{{ yacht.name|lower }}"
+        data-price="{{ yacht.price_per_day }}"
+        data-location="{{ yacht.location|lower }}"
+      >
+        {% if yacht.main_photo %}
+        <div class="relative">
+          <img
+            class="w-full h-48 object-cover"
+            src="{{ yacht.main_photo.url }}"
+            alt="{{ yacht.name }}"
+          />
+          <div
+            class="absolute top-4 left-4 bg-white px-3 py-1 rounded-full text-sm font-medium text-[#0f172a]"
+          >
+            {{ yacht.location }}
+          </div>
+        </div>
+        {% else %}
+        <div class="h-48 flex items-center justify-center bg-[#f8fafc]">
+          <svg
+            class="h-16 w-16 text-[#64748b]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+        </div>
+        {% endif %}
+        <div class="p-6 flex flex-col flex-grow">
+          <h2 class="text-xl font-bold text-[#0f172a] mb-2">{{ yacht.name }}</h2>
+          <p class="text-[#64748b] text-sm mb-4 line-clamp-2">{{yacht.description}}</p>
+          <div class="mt-auto">
+            <div class="flex justify-between items-center">
+              <span class="text-[#1e3a8a] font-bold">{{ yacht.price_per_day }}₽/день</span>
+              <a
+                href="{% url 'yacht_detail' yacht.pk %}"
+                class="text-[#1e3a8a] hover:text-[#1a3072] font-medium transition duration-200"
+              >
+                Подробнее
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-span-3 text-center text-[#64748b]">Нет доступных яхт.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const filterForm = document.getElementById("filterForm");
+    const nameInput = document.getElementById("name");
+    const minPriceInput = document.getElementById("minPrice");
+    const maxPriceInput = document.getElementById("maxPrice");
+    const locationSelect = document.getElementById("location");
+    const yachtCards = document.querySelectorAll(".yacht-card");
+    const noResultsMessage = document.getElementById("noResultsMessage");
+
+    // Функция фильтрации
+    function filterYachts() {
+      const searchName = nameInput.value.toLowerCase();
+      const minPrice = parseFloat(minPriceInput.value) || 0;
+      const maxPrice = parseFloat(maxPriceInput.value) || Infinity;
+      const selectedLocation = locationSelect.value.toLowerCase();
+
+      let visibleCards = 0;
+
+      yachtCards.forEach((card) => {
+        const name = card.dataset.name;
+        const price = parseFloat(card.dataset.price);
+        const location = card.dataset.location;
+
+        const matchesName = name.includes(searchName);
+        const matchesPrice = price >= minPrice && price <= maxPrice;
+        const matchesLocation = !selectedLocation || location === selectedLocation;
+
+        if (matchesName && matchesPrice && matchesLocation) {
+          card.style.display = "";
+          visibleCards++;
+        } else {
+          card.style.display = "none";
+        }
+      });
+
+      noResultsMessage.style.display = visibleCards === 0 ? "block" : "none";
+    }
+
+    // Слушатели событий для фильтрации
+    nameInput.addEventListener("input", filterYachts);
+    minPriceInput.addEventListener("input", filterYachts);
+    maxPriceInput.addEventListener("input", filterYachts);
+    locationSelect.addEventListener("change", filterYachts);
+  });
+</script>
+
+{% endblock %}

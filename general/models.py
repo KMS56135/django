@@ -11,8 +11,8 @@ class Yacht(models.Model):
     main_photo = models.ImageField(upload_to='media/yachts/', blank=True, null=True)
 
     location = models.CharField(max_length=100, blank=True, null=True)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)  # Широта
-    longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)  # Долгота
+    latitude = models.DecimalField(max_digits=25, decimal_places=20, blank=True, null=True)  # Широта
+    longitude = models.DecimalField(max_digits=25, decimal_places=20, blank=True, null=True)  # Долгота
     
     # Тоннаж
     displacement = models.CharField(max_length=100, blank=True, null=True)  # Водоизмещение

@@ -83,6 +83,11 @@
     border-top: 1px solid #e5e7eb;
     font-weight: 600;
   }
+  #map {
+    height: 400px;
+    border-radius: 1rem;
+    z-index: 1;
+  }
 </style>
 {% endblock %} {% block content %}
 <div class="container mx-auto px-4 py-8">
@@ -248,93 +253,34 @@
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12 h-[200px]">
     <!-- Технические характеристики -->
     <div class="h-[200px] bg-white rounded-xl shadow-lg p-6">
-      <h2 class="text-xl font-semibold mb-4">Технические характеристики</h2>
-      <div class="space-y-3">
-        <div class="flex justify-between">
-          <span class="text-gray-600">Водоизмещение</span>
-          <span class="font-medium">{{ yacht.displacement }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-600">Запас топлива</span>
-          <span class="font-medium">{{ yacht.fuel_capacity }} л</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-600">Запас воды</span>
-          <span class="font-medium">{{ yacht.water_capacity }} л</span>
-        </div>
-        {% comment %} <div class="flex justify-between">
-          <span class="text-gray-600">Тип корпуса</span>
-          <span class="font-medium">{{ yacht.hull_type }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-600">Материал</span>
-          <span class="font-medium">{{ yacht.hull_material }}</span>
-        </div> {% endcomment %}
-      </div>
+      <h3 class="text-xl font-semibold mb-4 text-gray-800">Технические характеристики</h3>
+      <ul class="space-y-2 text-gray-600">
+        <li><strong>Водоизмещение:</strong> {{ yacht.displacement }}</li>
+        <li><strong>Запас топлива:</strong> {{ yacht.fuel_capacity }} л</li>
+        <li><strong>Запас воды:</strong> {{ yacht.water_capacity }} л</li>
+      </ul>
     </div>
 
-    <!-- Комфорт -->
-    <div class="h-[200px] bg-white rounded-xl shadow-lg p-6">
-      <h2 class="text-xl font-semibold mb-4">Комфорт</h2>
-      <div class="space-y-3">
-        <div class="flex justify-between">
-          <span class="text-gray-600">Спальных мест</span>
-          <span class="font-medium">{{ yacht.guest_beds }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-600">Санузлов</span>
-          <span class="font-medium">{{ yacht.bathrooms }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-600">Экипаж</span>
-          <span class="font-medium">{{ yacht.crew }}</span>
-        </div>
-        {% comment %} <div class="flex justify-between">
-          <span class="text-gray-600">Дизайн</span>
-          <span class="font-medium">{{ yacht.design_style }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-600">Концепция</span>
-          <span class="font-medium">{{ yacht.concept }}</span>
-        </div> {% endcomment %}
-      </div>
+    <!-- Дополнительные характеристики -->
+    <div class="lg:col-span-2 bg-white rounded-xl shadow-lg p-6">
+      <h3 class="text-xl font-semibold mb-4 text-gray-800">Дополнительные характеристики</h3>
+      <ul class="space-y-2 text-gray-600 grid grid-cols-2 gap-x-8">
+        <li><strong>Спальных мест:</strong> {{ yacht.guest_beds }}</li>
+        <li><strong>Санузлы:</strong> {{ yacht.bathrooms }}</li>
+        <li><strong>Экипаж:</strong> {{ yacht.crew }}</li>
+      </ul>
     </div>
-
-    <!-- Производитель -->
-    {% comment %} <div class="bg-white rounded-xl shadow-lg p-6">
-      <h2 class="text-xl font-semibold mb-4">Производитель</h2>
-      <div class="space-y-3">
-        <div class="flex justify-between">
-          <span class="text-gray-600">Верфь</span>
-          <span class="font-medium">{{ yacht.shipyard }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-600">Страна</span>
-          <span class="font-medium">{{ yacht.country }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-600">Серия</span>
-          <span class="font-medium">{{ yacht.series }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-600">Модель</span>
-          <span class="font-medium">{{ yacht.model_name }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-600">Год выпуска</span>
-          <span class="font-medium">{{ yacht.release_period }}</span>
-        </div>
-      </div>
-    </div>
-  </div> {% endcomment %}
-
-  <!-- Карта -->
-  <div class="h-[200px] bg-white rounded-xl shadow-lg p-6 mb-12">
-    <h2 class="text-xl font-semibold mb-4">Местоположение яхты</h2>
-    <div id="map" class="h-[400px] rounded-lg"></div>
   </div>
 
-  <!-- Модальное окно -->
+  <!-- Карта с геолокацией -->
+  {% if yacht.latitude and yacht.longitude %}
+  <div class="mb-12">
+    <h2 class="text-2xl font-bold text-gray-900 mb-4">Местоположение</h2>
+    <div id="map" class="h-96 w-full rounded-lg z-10"></div>
+  </div>
+  {% endif %}
+
+  <!-- Модальное окно бронирования -->
   <div id="modal" class="modal-overlay fixed inset-0 hidden z-50 bg-black bg-opacity-50">
     <div class="flex items-center justify-center min-h-screen p-4">
       <div class="bg-white rounded-xl p-8 max-w-lg w-full relative">
@@ -412,6 +358,64 @@
             </div>
           </div>
 
+          <!-- Данные карты -->
+          <div class="card-details space-y-4">
+            <h4 class="text-lg font-medium text-gray-900">Данные для оплаты</h4>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="col-span-2">
+                <label for="card_number" class="block text-sm font-medium text-gray-700 mb-2"
+                  >Номер карты</label
+                >
+                <input
+                  type="text"
+                  id="card_number"
+                  name="card_number"
+                  required
+                  placeholder="1234 5678 9012 3456"
+                  maxlength="19"
+                  pattern="[0-9\s]{19}"
+                  title="Введите 16 цифр номера карты"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                />
+              </div>
+
+              <div>
+                <label for="expiry_date" class="block text-sm font-medium text-gray-700 mb-2"
+                  >Срок действия</label
+                >
+                <input
+                  type="text"
+                  id="expiry_date"
+                  name="expiry_date"
+                  required
+                  placeholder="MM/YY"
+                  maxlength="4"
+                  pattern="(0[1-9]|1[0-2])\/([0-9]{2})"
+                  title="Введите месяц и год в формате ММ/ГГ"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                />
+              </div>
+
+              <div>
+                <label for="cvv" class="block text-sm font-medium text-gray-700 mb-2"
+                  >CVV код</label
+                >
+                <input
+                  type="text"
+                  id="cvv"
+                  name="cvv"
+                  required
+                  placeholder="123"
+                  maxlength="3"
+                  pattern="[0-9]{3}"
+                  title="Введите 3 цифры CVV кода"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                />
+              </div>
+            </div>
+          </div>
+
           <button
             type="submit"
             class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
@@ -431,7 +435,31 @@
   {% endfor %}
 </div>
 {% endif %} {% endblock %} {% block extra_js %}
+<!-- Подключаем Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+<!-- Инициализация карты -->
+{% if yacht.latitude and yacht.longitude %}
 <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var lat = parseFloat("{{ yacht.latitude }}".replace(",", "."));
+    var lon = parseFloat("{{ yacht.longitude }}".replace(",", "."));
+
+    var map = L.map("map").setView([lat, lon], 13);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
+
+    L.marker([lat, lon]).addTo(map).bindPopup("{{ yacht.name }}").openPopup();
+  });
+</script>
+{% endif %}
+
+<script>
+  const bookedDates = {{ booked_dates_json|safe }};
+
   document.addEventListener('DOMContentLoaded', function() {
       const startDateInput = document.getElementById('start_date');
       const endDateInput = document.getElementById('end_date');

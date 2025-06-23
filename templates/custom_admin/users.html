@@ -1,0 +1,36 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container mx-auto py-8">
+  <h1 class="text-2xl font-bold mb-6">Пользователи</h1>
+  <a
+    href="{% url 'custom_admin_dashboard' %}"
+    class="text-blue-500 hover:underline mb-4 inline-block"
+    >&larr; Назад в панель</a
+  >
+  <table class="min-w-full bg-white rounded shadow">
+    <thead>
+      <tr>
+        <th class="py-2 px-4 border-b">ID</th>
+        <th class="py-2 px-4 border-b">Пользователь</th>
+        <th class="py-2 px-4 border-b">Email</th>
+        <th class="py-2 px-4 border-b">Телефон</th>
+        <th class="py-2 px-4 border-b">Дата регистрации</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td class="py-2 px-4 border-b">{{ user.id }}</td>
+        <td class="py-2 px-4 border-b">{{ user.user.username }}</td>
+        <td class="py-2 px-4 border-b">{{ user.user.email }}</td>
+        <td class="py-2 px-4 border-b">{{ user.phone }}</td>
+        <td class="py-2 px-4 border-b">{{ user.user.date_joined|date:'d.m.Y' }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" class="py-4 text-center text-gray-500">Пользователей нет</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

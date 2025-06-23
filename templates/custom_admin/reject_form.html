@@ -1,0 +1,24 @@
+<h2 class="text-xl font-bold mb-4">Отклонить заявку #{{ booking.id }}</h2>
+<form method="post" action="{% url 'reject_booking' booking.id %}" class="reject-form space-y-4">
+  {% csrf_token %}
+  <label class="block text-gray-700 font-medium mb-2">Причина отклонения:</label>
+  <textarea
+    name="reject_reason"
+    required
+    class="w-full border rounded p-2"
+    rows="3"
+    placeholder="Укажите причину..."
+  ></textarea>
+  <div class="flex justify-end space-x-2">
+    <button
+      type="button"
+      onclick="closeRejectModal()"
+      class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+    >
+      Отмена
+    </button>
+    <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+      Отклонить
+    </button>
+  </div>
+</form>

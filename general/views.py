@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import logout
 from datetime import datetime, timedelta
 import json  
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from general.models import Yacht, Booking, UserProfile
 from django.http import JsonResponse
@@ -266,5 +266,38 @@ def register(request):
         'success': False,
         'errors': 'Метод не поддерживается'
     })
+
+def is_admin(user):
+    return user.is_superuser or user.is_staff
+
+@user_passes_test(is_admin)
+def custom_admin_dashboard(request):
+    return render(request, 'custom_admin/dashboard.html')
+
+@user_passes_test(is_admin)
+def admin_bookings(request):
+    bookings = Booking.objects.all().order_by('-id')
+    return render(request, 'custom_admin/bookings.html', {'bookings': bookings})
+
+@user_passes_test(is_admin)
+def accept_booking(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+    booking.status = 'processing'
+    booking.save()
+    return redirect('admin_bookings')
+
+@user_passes_test(is_admin)
+def reject_booking(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+    if request.method == 'POST':
+        booking.delete()
+        return redirect('admin_bookings')
+    # Для AJAX-запроса на форму
+    return render(request, 'custom_admin/reject_form.html', {'booking': booking})
+
+@user_passes_test(is_admin)
+def admin_users(request):
+    users = UserProfile.objects.all()
+    return render(request, 'custom_admin/users.html', {'users': users})
     
    

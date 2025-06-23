@@ -264,7 +264,7 @@
     <!-- Дополнительные характеристики -->
     <div class="lg:col-span-2 bg-white rounded-xl shadow-lg p-6">
       <h3 class="text-xl font-semibold mb-4 text-gray-800">Дополнительные характеристики</h3>
-      <ul class="space-y-2 text-gray-600 grid grid-cols-2 gap-x-8">
+      <ul class="space-y-2 text-gray-600 grid grid-cols-1 gap-x-8">
         <li><strong>Спальных мест:</strong> {{ yacht.guest_beds }}</li>
         <li><strong>Санузлы:</strong> {{ yacht.bathrooms }}</li>
         <li><strong>Экипаж:</strong> {{ yacht.crew }}</li>
@@ -423,6 +423,25 @@
             Подтвердить бронирование
           </button>
         </form>
+      </div>
+    </div>
+  </div>
+  <!-- Модальное окно для карусели изображений -->
+  <div
+    id="carouselModal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 hidden"
+  >
+    <button id="closeCarousel" class="absolute top-4 right-4 text-white text-3xl">&times;</button>
+    <div class="relative w-full max-w-2xl flex flex-col items-center">
+      <img
+        id="carouselImage"
+        src=""
+        alt="Фото яхты"
+        class="rounded-xl max-h-[70vh] object-contain"
+      />
+      <div class="flex justify-between w-full mt-4">
+        <button id="prevImage" class="text-white text-2xl px-4 py-2">&larr;</button>
+        <button id="nextImage" class="text-white text-2xl px-4 py-2">&rarr;</button>
       </div>
     </div>
   </div>
@@ -619,6 +638,52 @@
               closeModal();
           }
       });
+  });
+</script>
+<script>
+  // Собираем все изображения (главное + дополнительные)
+  const images = [
+    {% if yacht.main_photo %}
+      "{{ yacht.main_photo.url }}",
+    {% endif %}
+    {% for photo in yacht.photos.all %}
+      "{{ photo.image.url }}",
+    {% endfor %}
+  ];
+  let currentIndex = 0;
+  // Открытие модального окна и показ нужного изображения
+  function openCarousel(index) {
+    currentIndex = index;
+    document.getElementById('carouselImage').src = images[currentIndex];
+    document.getElementById('carouselModal').classList.remove('hidden');
+  }
+  // Закрытие модального окна
+  document.getElementById('closeCarousel').onclick = function() {
+    document.getElementById('carouselModal').classList.add('hidden');
+  };
+  // Перелистывание изображений
+  document.getElementById('prevImage').onclick = function() {
+    currentIndex = (currentIndex - 1 + images.length) % images.length;
+    document.getElementById('carouselImage').src = images[currentIndex];
+  };
+  document.getElementById('nextImage').onclick = function() {
+    currentIndex = (currentIndex + 1) % images.length;
+    document.getElementById('carouselImage').src = images[currentIndex];
+  };
+  // Навешиваем обработчики на все миниатюры
+  document.addEventListener('DOMContentLoaded', function() {
+    // Главное фото
+    const mainPhoto = document.querySelector('[alt="{{ yacht.name }}"].w-full.h-96');
+    if (mainPhoto) {
+      mainPhoto.style.cursor = 'pointer';
+      mainPhoto.onclick = () => openCarousel(0);
+    }
+    // Дополнительные фото
+    const thumbs = document.querySelectorAll('.grid img.w-full.h-24');
+    thumbs.forEach((img, idx) => {
+      img.style.cursor = 'pointer';
+      img.onclick = () => openCarousel(idx + {% if yacht.main_photo %}1{% else %}0{% endif %});
+    });
   });
 </script>
 {% endblock %}

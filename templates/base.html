@@ -81,7 +81,6 @@
               class="text-gray-600 hover:text-[#1e3a8a] transition duration-200"
               >О нас</a
             >
-
           </nav>
 
           <!-- Правая часть меню (скрыта на мобильных) -->
@@ -95,7 +94,7 @@
             </a>
             {% else %} {% if user.is_superuser %}
             <a
-              href="/admin"
+              href="/custom-admin/"
               class="px-4 sm:px-6 py-2 bg-[#3b82f6] text-white text-sm sm:text-base rounded-lg hover:bg-[#2563eb] transition duration-200"
             >
               Панель администратора
@@ -163,7 +162,7 @@
               </a>
               {% else %} {% if user.is_superuser %}
               <a
-                href="/admin"
+                href="/custom-admin/"
                 class="block w-full text-center px-6 py-2 mb-2 bg-[#3b82f6] text-white rounded-lg hover:bg-[#2563eb] transition duration-200"
               >
                 Панель администратора
@@ -207,7 +206,8 @@
               Откройте для себя мир роскошных яхт и незабываемых морских путешествий с нашей
               компанией
             </p>
-            {% comment %} <div class="flex space-x-4">
+            {% comment %}
+            <div class="flex space-x-4">
               <a href="#" class="text-gray-300 hover:text-white transition-colors">
                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                   <path
@@ -229,7 +229,8 @@
                   />
                 </svg>
               </a>
-            </div> {% endcomment %}
+            </div>
+            {% endcomment %}
           </div>
 
           <!-- Навигация -->
@@ -253,9 +254,11 @@
                   >О нас</a
                 >
               </li>
-              {% comment %} <li>
+              {% comment %}
+              <li>
                 <a href="#" class="text-gray-300 hover:text-white transition-colors">Контакты</a>
-              </li> {% endcomment %}
+              </li>
+              {% endcomment %}
             </ul>
           </div>
 

@@ -61,6 +61,14 @@ class Booking(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     is_cancelled = models.BooleanField(default=False)
+    STATUS_CHOICES = [
+        ('pending', 'В ожидании'),
+        ('processing', 'В обработке'),
+        ('accepted', 'Принято'),
+        ('rejected', 'Отклонено'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    reject_reason = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.username} бронировал {self.yacht.name}"

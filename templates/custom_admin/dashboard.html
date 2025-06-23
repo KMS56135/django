@@ -1,0 +1,17 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container mx-auto py-8">
+  <h1 class="text-3xl font-bold mb-6">Панель администратора</h1>
+  <div class="space-y-4">
+    <a
+      href="{% url 'admin_bookings' %}"
+      class="block px-6 py-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+      >Заявки на бронирование</a
+    >
+    <a
+      href="{% url 'admin_users' %}"
+      class="block px-6 py-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+      >Пользователи</a
+    >
+  </div>
+</div>
+{% endblock %}
